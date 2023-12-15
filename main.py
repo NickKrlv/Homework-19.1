@@ -1,4 +1,16 @@
-<!doctype html>
+from http.server import BaseHTTPRequestHandler, HTTPServer
+from urllib.parse import urlparse, parse_qs
+
+# Для начала определим настройки запуска
+hostName = "localhost"  # Адрес для доступа по сети
+serverPort = 8080  # Порт для доступа по сети
+
+
+class MyServer(BaseHTTPRequestHandler):
+
+    def __get_html_content(self):
+        return """
+        <!doctype html>
 <html lang="en">
 <head>
     <meta charset="utf-8">
@@ -284,7 +296,7 @@
                             <button type="button" class="w-100 btn btn-success">Купить</button>
                         </div>
                     </div>
-
+                
                 </div>
                 <div class="col-4">
                     <form>
@@ -306,11 +318,11 @@
                 </div>
             </div>
         </main>
-        <div class="row text-center">
+        <div class="row ml-3">
 
-            <hi>Часто задаваемые вопросы</hi>
+            <hi>FAQ</hi>
         </div>
-        <p class="d-inline-flex gap-1">
+        <p class="d-inline-flex gap-1 width-100">
             <button class="btn btn-primary" type="button" data-bs-toggle="collapse"
                     data-bs-target="#multiCollapseExample1" aria-expanded="false" aria-controls="multiCollapseExample1">
                 Как купить?
@@ -348,7 +360,7 @@
             </div>
         </div>
     </div>
-
+    
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
@@ -367,3 +379,28 @@
 </script>
 </body>
 </html>
+        """
+
+    def do_GET(self):
+        """ Метод для обработки входящих GET-запросов """
+        query_components = parse_qs(urlparse(self.path).query)
+        print(query_components)
+        page_content = self.__get_html_content()
+        self.send_response(200)  # Отправка кода ответа
+        self.send_header("Content-type", "text/html")  # Отправка типа данных, который будет передаваться
+        self.end_headers()  # Завершение формирования заголовков ответа
+        self.wfile.write(bytes(page_content, "utf-8"))  # Тело ответа
+
+
+if __name__ == "__main__":
+
+    webServer = HTTPServer((hostName, serverPort), MyServer)
+    print("Server started http://%s:%s" % (hostName, serverPort))
+
+    try:
+        webServer.serve_forever()
+    except KeyboardInterrupt:
+        pass
+
+    webServer.server_close()
+    print("Server stopped.")
